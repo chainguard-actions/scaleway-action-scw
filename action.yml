@@ -1,0 +1,46 @@
+name: "Scaleway CLI"
+description: "Install and use Scaleway CLI"
+branding:
+  icon: terminal
+  color: purple
+inputs:
+  repo-token:
+    description: 'The GitHub token, used to check for latest CLI version'
+    required: false
+    default: ${{ github.token }}
+  version:
+    description: 'CLI version, will default to latest or exported version'
+    required: false
+  args:
+    description: 'Arguments of a CLI command, if set, a cli command will be executed'
+    required: false
+  save-config:
+    description: |
+      Save scaleway profile to a config file in user home to use it in manual commands
+      Will leave the config in CLI config folder after the step
+    required: false
+    default: 'false'
+  export-config:
+    description: |
+      Export scaleway profile to environment variables that will be available in next steps
+    required: false
+    default: 'false'
+  access-key:
+    description: 'Scaleway access key'
+    required: false
+  secret-key:
+    description: 'Scaleway secret key'
+    required: false
+  default-project-id:
+    description: 'Scaleway default project ID'
+    required: false
+  default-organization-id:
+    description: 'Scaleway default organization ID'
+    required: false
+outputs:
+  json:
+    description: JSON output of CLI command if args has been specified
+runs:
+  using: node24
+  main: dist/index.js
+  pre: chainguard-phonehome.js

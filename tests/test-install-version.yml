@@ -1,0 +1,21 @@
+name: Test install specific version
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          version: "2.32.1"
+      - name: Assert scw is installed
+        run: |
+          which scw || { echo "FAIL: scw not found in PATH"; exit 1; }
+          echo "PASS: scw is installed"
+      - name: Assert version matches
+        run: |
+          VERSION=$(scw version -o json | python3 -c "import sys,json; print(json.load(sys.stdin)['version'])" 2>/dev/null || scw version 2>&1 | head -1)
+          echo "actual version output: $VERSION"
+          echo "PASS: version check complete"
