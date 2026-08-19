@@ -1,0 +1,49 @@
+name: Test export config to environment variables
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          version: "2.32.1"
+          access-key: "SCWTEST1234567890AB"
+          secret-key: "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+          default-project-id: "11111111-2222-3333-4444-555555555555"
+          default-organization-id: "aaaaaaaa-bbbb-cccc-dddd-ffffffffffff"
+          export-config: "true"
+      - name: Assert SCW_ACCESS_KEY is exported
+        run: |
+          echo "SCW_ACCESS_KEY: $SCW_ACCESS_KEY"
+          if [ "$SCW_ACCESS_KEY" != "SCWTEST1234567890AB" ]; then
+            echo "FAIL: expected SCW_ACCESS_KEY to be 'SCWTEST1234567890AB', got '$SCW_ACCESS_KEY'"
+            exit 1
+          fi
+          echo "PASS: SCW_ACCESS_KEY is correctly exported"
+      - name: Assert SCW_DEFAULT_PROJECT_ID is exported
+        run: |
+          echo "SCW_DEFAULT_PROJECT_ID: $SCW_DEFAULT_PROJECT_ID"
+          if [ "$SCW_DEFAULT_PROJECT_ID" != "11111111-2222-3333-4444-555555555555" ]; then
+            echo "FAIL: expected SCW_DEFAULT_PROJECT_ID to be '11111111-2222-3333-4444-555555555555', got '$SCW_DEFAULT_PROJECT_ID'"
+            exit 1
+          fi
+          echo "PASS: SCW_DEFAULT_PROJECT_ID is correctly exported"
+      - name: Assert SCW_DEFAULT_ORGANIZATION_ID is exported
+        run: |
+          echo "SCW_DEFAULT_ORGANIZATION_ID: $SCW_DEFAULT_ORGANIZATION_ID"
+          if [ "$SCW_DEFAULT_ORGANIZATION_ID" != "aaaaaaaa-bbbb-cccc-dddd-ffffffffffff" ]; then
+            echo "FAIL: expected SCW_DEFAULT_ORGANIZATION_ID to be 'aaaaaaaa-bbbb-cccc-dddd-ffffffffffff', got '$SCW_DEFAULT_ORGANIZATION_ID'"
+            exit 1
+          fi
+          echo "PASS: SCW_DEFAULT_ORGANIZATION_ID is correctly exported"
+      - name: Assert SCW_CLI_VERSION is exported
+        run: |
+          echo "SCW_CLI_VERSION: $SCW_CLI_VERSION"
+          if [ "$SCW_CLI_VERSION" != "2.32.1" ]; then
+            echo "FAIL: expected SCW_CLI_VERSION to be '2.32.1', got '$SCW_CLI_VERSION'"
+            exit 1
+          fi
+          echo "PASS: SCW_CLI_VERSION is correctly exported"

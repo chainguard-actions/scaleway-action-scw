@@ -1,0 +1,28 @@
+name: Test pinned version install
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          version: "2.30.0"
+      - name: Assert scw CLI version matches pinned version
+        run: |
+          echo "Checking scw binary is available..."
+          if ! command -v scw &>/dev/null; then
+            echo "FAIL: scw binary not found in PATH"
+            exit 1
+          fi
+          INSTALLED_VERSION=$(scw version | grep -i 'version' | head -1 | awk '{print $NF}')
+          echo "Installed version output: $INSTALLED_VERSION"
+          scw version
+          # Verify the version string contains 2.30.0
+          if ! scw version | grep -q "2.30.0"; then
+            echo "FAIL: expected version 2.30.0 not found in scw version output"
+            exit 1
+          fi
+          echo "PASS"

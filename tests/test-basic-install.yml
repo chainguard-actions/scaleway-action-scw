@@ -1,0 +1,31 @@
+name: Test basic CLI installation
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          version: "2.32.1"
+      - name: Assert scw CLI is installed and in PATH
+        run: |
+          echo "Checking scw CLI is available..."
+          if ! command -v scw >/dev/null 2>&1; then
+            echo "FAIL: scw CLI not found in PATH"
+            exit 1
+          fi
+          echo "scw found at: $(command -v scw)"
+          echo "PASS: scw CLI is installed"
+      - name: Assert scw CLI version matches requested
+        run: |
+          VERSION_OUTPUT=$(scw version 2>&1 || true)
+          echo "version output: $VERSION_OUTPUT"
+          if echo "$VERSION_OUTPUT" | grep -q "2.32.1"; then
+            echo "PASS: version matches 2.32.1"
+          else
+            echo "FAIL: expected version 2.32.1 in output"
+            exit 1
+          fi

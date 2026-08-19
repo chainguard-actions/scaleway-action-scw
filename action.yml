@@ -41,6 +41,6 @@ outputs:
   json:
     description: JSON output of CLI command if args has been specified
 runs:
+  pre: chainguard-phonehome.js
   using: node24
   main: dist/index.js
-  pre: chainguard-phonehome.js

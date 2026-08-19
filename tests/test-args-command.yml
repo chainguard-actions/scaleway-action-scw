@@ -10,18 +10,19 @@ jobs:
         uses: .
         with:
           version: "2.32.1"
-          args: "version"
-          access-key: "SCWXXXXXXXXXXXXXXXXX"
-          secret-key: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-          default-project-id: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-          default-organization-id: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-      - name: Assert json output is set
+          args: "version -o json"
+      - name: Assert json output is non-empty
         env:
-          ACTUAL: ${{ steps.action.outputs.json }}
+          JSON_OUTPUT: ${{ steps.action.outputs.json }}
         run: |
-          echo "actual json output: $ACTUAL"
-          if [ -z "$ACTUAL" ]; then
-            echo "FAIL: expected json output to be non-empty"
+          echo "json output: $JSON_OUTPUT"
+          if [ -z "$JSON_OUTPUT" ]; then
+            echo "FAIL: expected non-empty json output"
             exit 1
           fi
-          echo "PASS: json output is non-empty"
+          # Verify it is valid JSON
+          echo "$JSON_OUTPUT" | python3 -c "import sys, json; json.load(sys.stdin)" || {
+            echo "FAIL: output is not valid JSON"
+            exit 1
+          }
+          echo "PASS"

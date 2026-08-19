@@ -1,0 +1,166 @@
+name: Test action
+permissions:
+  contents: read
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  merge_group:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
+      - name: Set Node.js
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          cache: 'pnpm'
+          node-version: 24.x
+      - run: pnpm install
+      - run: pnpm build
+      - run: pnpm lint
+  test_action:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Install CLI
+        uses: ./
+        with:
+          version: latest
+        env:
+          RUNNER_DEBUG: 1
+      - name: Find CLI
+        run: ls -lR $RUNNER_TOOL_CACHE/scw
+      - name: Use CLI
+        run: scw info
+  test_action_usage:
+    if: github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == 'scaleway/action-scw' && github.actor != 'dependabot[bot]')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Use CLI
+        id: cli
+        uses: ./
+        with:
+          args: instance server-type list
+          version: v2.54.0
+          access-key: ${{ secrets.SCW_ACCESS_KEY }}
+          secret-key: ${{ secrets.SCW_SECRET_KEY }}
+          default-project-id: ${{ secrets.SCW_DEFAULT_PROJECT_ID }}
+          default-organization-id: ${{ secrets.SCW_DEFAULT_ORGANIZATION_ID }}
+      - name: Check output
+        env:
+          CLI_JSON: ${{ steps.cli.outputs.json }}
+        run: |
+          [ "$( echo "$CLI_JSON" | jq -r 'type')" = "array" ]
+      - name: Use CLI manually
+        id: cli_manual
+        run: echo "json=$(scw -o json instance server-type list)" >> $GITHUB_OUTPUT
+        env:
+          SCW_ACCESS_KEY: ${{ secrets.SCW_ACCESS_KEY }}
+          SCW_SECRET_KEY: ${{ secrets.SCW_SECRET_KEY }}
+          SCW_DEFAULT_PROJECT_ID: ${{ secrets.SCW_DEFAULT_PROJECT_ID }}
+          SCW_DEFAULT_ORGANIZATION_ID: ${{ secrets.SCW_DEFAULT_ORGANIZATION_ID }}
+      - name: Check output
+        env:
+          CLI_MANUAL_JSON: ${{ steps.cli_manual.outputs.json }}
+        run: |
+          [ "$( echo "$CLI_MANUAL_JSON" | jq -r 'type')" = "array" ]
+  test_action_export_config:
+    if: github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == 'scaleway/action-scw' && github.actor != 'dependabot[bot]')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Install CLI and export config
+        uses: ./
+        with:
+          export-config: true
+          version: v2.54.0
+          access-key: ${{ secrets.SCW_ACCESS_KEY }}
+          secret-key: ${{ secrets.SCW_SECRET_KEY }}
+          default-project-id: ${{ secrets.SCW_DEFAULT_PROJECT_ID }}
+          default-organization-id: ${{ secrets.SCW_DEFAULT_ORGANIZATION_ID }}
+      - name: Use CLI with exported config
+        uses: ./
+        id: cli
+        with:
+          args: instance server-type list
+      - name: Check output
+        env:
+          CLI_JSON: ${{ steps.cli.outputs.json }}
+        run: |
+          [ "$( echo "$CLI_JSON" | jq -r 'type')" = "array" ]
+      - name: Use CLI manually with exported config
+        id: cli_manual
+        run: echo "json=$(scw -o json instance server-type list)" >> $GITHUB_OUTPUT
+      - name: Check output
+        env:
+          CLI_MANUAL_JSON: ${{ steps.cli_manual.outputs.json }}
+        run: |
+          [ "$( echo "$CLI_MANUAL_JSON" | jq -r 'type')" = "array" ]
+      - name: Export again
+        uses: ./
+        with:
+          export-config: true
+          version: v2.29.0
+          access-key: ${{ secrets.SCW_ACCESS_KEY }}
+          secret-key: ${{ secrets.SCW_SECRET_KEY }}
+          default-project-id: ${{ secrets.SCW_DEFAULT_PROJECT_ID }}
+          default-organization-id: ${{ secrets.SCW_DEFAULT_ORGANIZATION_ID }}
+  test_action_save_config:
+    if: github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == 'scaleway/action-scw' && github.actor != 'dependabot[bot]')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Install CLI and save config
+        uses: ./
+        with:
+          save-config: true
+          version: v2.54.0
+          access-key: ${{ secrets.SCW_ACCESS_KEY }}
+          secret-key: ${{ secrets.SCW_SECRET_KEY }}
+          default-project-id: ${{ secrets.SCW_DEFAULT_PROJECT_ID }}
+          default-organization-id: ${{ secrets.SCW_DEFAULT_ORGANIZATION_ID }}
+      - name: Use CLI manually with saved config
+        id: cli_manual
+        run: echo "json=$(scw -o json instance server-type list)" >> $GITHUB_OUTPUT
+      - name: Check output
+        env:
+          CLI_MANUAL_JSON: ${{ steps.cli_manual.outputs.json }}
+        run: |
+          [ "$( echo "$CLI_MANUAL_JSON" | jq -r 'type')" = "array" ]
+      - name: Check CLI config
+        uses: ./
+        with:
+          version: v2.29.0
+          args: config info
+        env:
+          RUNNER_DEBUG: true
+      - name: Use CLI with saved config
+        uses: ./
+        id: cli
+        with:
+          version: v2.29.0
+          args: instance server-type list
+      - name: Check output
+        env:
+          CLI_JSON: ${{ steps.cli.outputs.json }}
+        run: |
+          [ "$( echo "$CLI_JSON" | jq -r 'type')" = "array" ]
+      - name: Save again
+        uses: ./
+        with:
+          save-config: true
+          version: v2.29.0
+          access-key: ${{ secrets.SCW_ACCESS_KEY }}
+          secret-key: ${{ secrets.SCW_SECRET_KEY }}
+          default-project-id: ${{ secrets.SCW_DEFAULT_PROJECT_ID }}
+          default-organization-id: ${{ secrets.SCW_DEFAULT_ORGANIZATION_ID }}
