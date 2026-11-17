@@ -4,8 +4,13 @@
   "version": "v0.0.3",
   "commit_sha": "2e34a1eb35cf3cac627f24643a101fea269cbd83",
   "url": "https://github.com/scaleway/action-scw",
-  "policy_sha": "d636be7e43ef829af6e853da6b3c7566db9f72fe",
+  "policy_sha": "374911c4be584df24e6da57af2d990570ef0f859",
   "test_policy_sha": "843adf9e4b8f85d0c08b27b9d0b09dd094b54702",
   "test_agent_version": "2",
-  "harden_agent_version": "2"
+  "harden_agent_version": "2",
+  "dist_artifact": {
+    "gcs_uri": "gs://patch-actions-node-artifacts/dist-artifacts/scaleway/action-scw/v0.0.3/sha256-4ded36f896ae299c630e62fd6383204e2f02f3a2620adc87887183301a845d0b.tar.gz",
+    "sha256": "4ded36f896ae299c630e62fd6383204e2f02f3a2620adc87887183301a845d0b",
+    "size_bytes": 288935
+  }
 }
